@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { PostsModel } from './posts.model';
+import { PostsModel } from './models/posts.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PostsService {
   posts: PostsModel[] = [];
 
-  addPost(title: string, tags: string[], description: string, body: string) {
+  addPost(
+    title: string,
+    owner: string,
+    tags: string[],
+    description: string,
+    body: string,
+  ) {
     const generatedId = uuidv4();
     this.posts.push(
-      new PostsModel(generatedId, title, tags, description, body),
+      new PostsModel(generatedId, title, owner, tags, description, body),
     );
     return generatedId;
   }
