@@ -1,30 +1,44 @@
 import { Injectable } from '@nestjs/common';
-import { PostsModel } from './models/posts.model';
+import { Post } from './models/posts.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Genre } from 'src/genre/models/genres.entity';
 
 @Injectable()
 export class PostsService {
-  posts: PostsModel[] = [];
+  constructor(
+    @InjectRepository(Post) private postRepository: Repository<Post>,
+    @InjectRepository(Genre)
+    private readonly genreRepository: Repository<Genre>,
+  ) {}
 
-  addPost(
+  async addPost(
     title: string,
     owner: string,
     tags: string[],
     description: string,
     body: string,
   ) {
-    const generatedId = uuidv4();
-    this.posts.push(
-      new PostsModel(generatedId, title, owner, tags, description, body),
+    const id = 'P - ' + uuidv4();
+    const genres = tags.map((tag) =>
+      this.genreRepository.find({ where: { genre: tag } }),
     );
-    return generatedId;
+    await this.postRepository.save({
+      id,
+      title,
+      owner,
+      genres,
+      description,
+      body,
+    });
+    return id;
   }
-  getPost(id: string): PostsModel {
-    const post = this.posts.find((prod) => prod.id == id);
 
-    return { ...post };
+  async getPost(id: string) {
+    return this.postRepository.findOne(id);
   }
-  getPosts(): PostsModel[] {
-    return { ...this.posts };
+  async getPosts() {
+    return this.postRepository.find();
   }
 }
